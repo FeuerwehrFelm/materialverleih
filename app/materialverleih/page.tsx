@@ -19,32 +19,32 @@ const materials: MaterialItem[] = [
     name: 'Bierzeltgarnitur',
     stock: 9,
     unit: 'Satz',
-    note: '9 verfügbare Sätze für gemeinsame Anlässe.',
+    note: 'Insgesamt stehen 9 Sätze zur Verfügung.',
   },
   {
     id: 'kinder-bierzelte',
     name: 'Kinder-Bierzeltgarnitur',
     stock: 4,
     unit: 'Satz',
-    note: '4 verfügbare Sätze für Familien- und Kinderanlässe.',
+    note: 'Insgesamt stehen 4 Sätze zur Verfügung.',
   },
   {
     id: 'stehtisch',
     name: 'Stehtisch',
     stock: 4,
     unit: 'Stk.',
-    note: '4 verfügbare Stehtische für kurze Einsätze und Ausstellungen.',
+    note: 'Insgesamt stehen 4 Stehtische zur Verfügung.',
   },
   {
     id: 'pavillon',
     name: 'Pavillon',
     stock: 1,
     unit: 'Set',
-    note: '1 verfügbares Set für Schutz und temporäre Unterstände.',
+    note: 'Insgesamt steht 1 Pavillon zur Verfügung.',
   },
 ];
 
-const accessCode = process.env.NEXT_PUBLIC_BOOKING_ACCESS_CODE ?? 'felm2026';
+const accessCode = process.env.NEXT_PUBLIC_BOOKING_ACCESS_CODE ?? '';
 const storageKey = 'feuerwehr-felm-login';
 const bookingsStorageKey = 'feuerwehr-felm-bookings';
 const bookingsTable = 'material_bookings';
@@ -89,6 +89,18 @@ function parseBookingDate(value: string) {
   }
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function formatDate(value: string) {
+  const date = parseBookingDate(value);
+  return date ? new Intl.DateTimeFormat('de-DE').format(date) : value;
+}
+
+function formatBookedAt(value: string) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? value
+    : new Intl.DateTimeFormat('de-DE', { dateStyle: 'short', timeStyle: 'short' }).format(date);
 }
 
 function sortBookings(bookings: BookingEntry[]) {
@@ -183,22 +195,27 @@ export default function MaterialBookingPage() {
   const [loginCode, setLoginCode] = useState('');
   const [loginError, setLoginError] = useState('');
   const [bookings, setBookings] = useState<BookingEntry[]>([]);
+  const [isLoadingBookings, setIsLoadingBookings] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [bookingsError, setBookingsError] = useState('');
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const raw = window.localStorage.getItem(storageKey);
-    if (!raw) return;
-
-    try {
-      const parsed = JSON.parse(raw) as StoredLogin;
-      if (parsed.name && parsed.code) {
-        setContactName(parsed.name);
-        setLoginName(parsed.name);
-        setIsLoggedIn(true);
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw) as StoredLogin;
+        if (parsed.name && parsed.code?.toLowerCase() === accessCode.toLowerCase()) {
+          setContactName(parsed.name);
+          setLoginName(parsed.name);
+          setIsLoggedIn(true);
+        } else {
+          window.localStorage.removeItem(storageKey);
+        }
+      } catch {
+        window.localStorage.removeItem(storageKey);
       }
-    } catch {
-      window.localStorage.removeItem(storageKey);
     }
 
     const localBookings = readStoredBookings();
@@ -208,17 +225,22 @@ export default function MaterialBookingPage() {
 
     const loadBookings = async () => {
       if (!isSupabaseConfigured || !supabase) {
+        setIsLoadingBookings(false);
         return;
       }
 
       const { data, error } = await supabase.from(bookingsTable).select('*').order('booked_at', { ascending: false });
       if (error || !data) {
+        setBookingsError('Die Ausleihen konnten gerade nicht geladen werden. Bitte lade die Seite erneut.');
+        setIsLoadingBookings(false);
         return;
       }
 
       const remoteBookings = data.map(mapRowToBooking);
       setBookings(remoteBookings);
       window.localStorage.setItem(bookingsStorageKey, JSON.stringify(remoteBookings));
+      setBookingsError('');
+      setIsLoadingBookings(false);
     };
 
     void loadBookings();
@@ -226,31 +248,52 @@ export default function MaterialBookingPage() {
 
   const selected = materials.find((item) => item.id === materialId) ?? materials[0];
 
-  const maxQuantity = useMemo(() => {
-    const days = startDate && endDate ? Math.max(1, Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1) : 1;
-    return Math.max(1, Math.floor(selected.stock / Math.max(1, days)));
-  }, [endDate, selected, startDate]);
-
   const { active: activeBookings, archive: archiveBookings } = useMemo(() => splitBookings(bookings), [bookings]);
 
   const availability = useMemo(() => {
-    const days = startDate && endDate ? Math.max(1, Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1) : 1;
-    const requiredUnits = quantity * Math.max(1, days);
-    const available = Math.max(0, selected.stock - requiredUnits);
+    const hasCompleteRange = Boolean(startDate && endDate);
+    const hasValidRange = hasCompleteRange && startDate <= endDate;
+    const relevantBookings = hasValidRange
+      ? bookings.filter((booking) =>
+          booking.materialName === selected.name
+          && booking.startDate !== 'ohne Datum'
+          && booking.endDate !== 'ohne Datum'
+          && booking.startDate <= endDate
+          && booking.endDate >= startDate)
+      : [];
+
+    const candidateDates = new Set([startDate]);
+    for (const booking of relevantBookings) {
+      if (booking.startDate >= startDate && booking.startDate <= endDate) candidateDates.add(booking.startDate);
+      if (booking.endDate >= startDate && booking.endDate <= endDate) candidateDates.add(booking.endDate);
+    }
+
+    let reserved = 0;
+    for (const date of candidateDates) {
+      const reservedOnDate = relevantBookings
+        .filter((booking) => booking.startDate <= date && booking.endDate >= date)
+        .reduce((sum, booking) => sum + booking.quantity, 0);
+      reserved = Math.max(reserved, reservedOnDate);
+    }
+
+    const available = Math.max(0, selected.stock - reserved);
 
     return {
       available,
-      canBook: requiredUnits <= selected.stock,
-      requiredUnits,
-      days,
+      canBook: hasValidRange && Number.isInteger(quantity) && quantity > 0 && quantity <= available,
+      hasCompleteRange,
+      hasValidRange,
+      reserved,
     };
-  }, [endDate, quantity, selected, startDate]);
+  }, [bookings, endDate, quantity, selected, startDate]);
+
+  const maxQuantity = Math.max(1, availability.available);
 
   useEffect(() => {
-    if (quantity > maxQuantity) {
-      setQuantity(maxQuantity);
+    if (availability.available > 0 && quantity > availability.available) {
+      setQuantity(availability.available);
     }
-  }, [maxQuantity, quantity]);
+  }, [availability.available, quantity]);
 
   const handleLogin = () => {
     const cleanedName = loginName.trim();
@@ -288,17 +331,32 @@ export default function MaterialBookingPage() {
 
   const handleSubmit = async () => {
     if (!isLoggedIn) {
-      setMessage('Bitte zuerst mit Name und Code anmelden.');
+      setMessage('Bitte melde dich zuerst an.');
       return;
     }
 
     if (!contactName.trim()) {
-      setMessage('Bitte geben Sie einen Ansprechpartner an.');
+      setMessage('Bitte gib einen Namen an.');
+      return;
+    }
+
+    if (!availability.hasCompleteRange) {
+      setMessage('Bitte wähle ein Start- und ein Enddatum aus.');
+      return;
+    }
+
+    if (!availability.hasValidRange) {
+      setMessage('Das Enddatum darf nicht vor dem Startdatum liegen.');
+      return;
+    }
+
+    if (!Number.isInteger(quantity) || quantity < 1) {
+      setMessage('Bitte gib eine gültige Menge ein.');
       return;
     }
 
     if (!availability.canBook) {
-      setMessage(`Für diesen Zeitraum sind nur noch ${availability.available} ${selected.unit} verfügbar.`);
+      setMessage(`Im gewählten Zeitraum sind noch ${availability.available} ${selected.unit} verfügbar.`);
       return;
     }
 
@@ -308,9 +366,9 @@ export default function MaterialBookingPage() {
       materialName: selected.name,
       quantity,
       unit: selected.unit,
-      startDate: startDate || 'ohne Datum',
-      endDate: endDate || 'ohne Datum',
-      bookedAt: new Date().toLocaleString('de-DE'),
+      startDate,
+      endDate,
+      bookedAt: new Date().toISOString(),
     };
 
     const persistBooking = (updatedBookings: BookingEntry[]) => {
@@ -320,26 +378,28 @@ export default function MaterialBookingPage() {
       }
     };
 
-    if (isSupabaseConfigured && supabase) {
-      const { error } = await supabase.from(bookingsTable).insert([mapBookingToRow(bookingEntry)]);
-      if (!error) {
-        setBookings((prev) => {
-          const updated = [bookingEntry, ...prev].slice(0, 50);
-          persistBooking(updated);
-          return updated;
-        });
-        setMessage(`${selected.name} wurde erfolgreich für ${quantity} ${selected.unit} gespeichert.`);
-        return;
-      }
+    setIsSaving(true);
+
+    if (!isSupabaseConfigured || !supabase) {
+      const updated = [bookingEntry, ...bookings].slice(0, 50);
+      persistBooking(updated);
+      setMessage('Die Ausleihe wurde nur auf diesem Gerät gespeichert, weil keine Datenbank verbunden ist.');
+      setIsSaving(false);
+      return;
     }
 
-    setBookings((prev) => {
-      const updated = [bookingEntry, ...prev].slice(0, 50);
-      persistBooking(updated);
-      return updated;
-    });
+    const { error } = await supabase.from(bookingsTable).insert([mapBookingToRow(bookingEntry)]);
+    if (error) {
+      setMessage('Die Ausleihe konnte nicht gespeichert werden. Bitte versuche es erneut.');
+      setIsSaving(false);
+      return;
+    }
 
-    setMessage(`${selected.name} wurde erfolgreich für ${quantity} ${selected.unit} gebucht.`);
+    const updated = [bookingEntry, ...bookings].slice(0, 50);
+    persistBooking(updated);
+    setMessage(`${quantity} ${selected.unit} ${selected.name} erfolgreich reserviert. Für weiteres Material bleiben Name und Zeitraum ausgewählt.`);
+    setQuantity(1);
+    setIsSaving(false);
   };
 
   return (
@@ -351,9 +411,9 @@ export default function MaterialBookingPage() {
               <span className="inline-flex items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-yellow-300">
                 <ShieldCheck className="h-4 w-4" /> Materialverleih
               </span>
-              <h1 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">Verleih von Material für Feuerwehr Felm</h1>
+              <h1 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">Material ausleihen</h1>
               <p className="mt-3 max-w-2xl text-base leading-7 text-slate-300">
-                Nur für Kameradinnen und Kameraden der Feuerwehr Felm. Material wird nur für den eigenen Gebrauch oder für fördernde Mitglieder verliehen.
+                Hier kannst du Material der Feuerwehr Felm für einen bestimmten Zeitraum reservieren.
               </p>
             </div>
             <Link href="/" className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 font-semibold text-slate-100 transition hover:bg-white/10">
@@ -364,8 +424,8 @@ export default function MaterialBookingPage() {
 
         {!isLoggedIn ? (
           <section className="rounded-[28px] border border-yellow-400/15 bg-[#081120]/85 p-6 shadow-[0_12px_30px_rgba(0,0,0,0.2)]">
-            <h2 className="text-xl font-semibold text-white">Anmeldung</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-400">Gib deinen Namen und den Code aus der Umgebungsdatei ein, um zu verleihen.</p>
+            <h2 className="text-xl font-semibold text-white">Kurz anmelden</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-400">Gib deinen Namen und den gemeinsamen Zugangscode ein.</p>
 
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               <label className="block">
@@ -374,7 +434,7 @@ export default function MaterialBookingPage() {
               </label>
               <label className="block">
                 <span className="mb-2 block text-sm font-medium text-slate-200">Code</span>
-                <input className="w-full rounded-2xl border border-yellow-400/15 bg-[#0d1728] px-4 py-3 text-white outline-none" type="password" value={loginCode} onChange={(event) => setLoginCode(event.target.value)} placeholder="Code aus der .env-Datei" />
+                <input className="w-full rounded-2xl border border-yellow-400/15 bg-[#0d1728] px-4 py-3 text-white outline-none" type="password" value={loginCode} onChange={(event) => setLoginCode(event.target.value)} placeholder="Zugangscode" />
               </label>
             </div>
 
@@ -393,7 +453,7 @@ export default function MaterialBookingPage() {
                     <CalendarDays className="h-5 w-5" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold text-white">Verleih anlegen</h2>
+                    <h2 className="text-xl font-semibold text-white">Neue Ausleihe</h2>
                     <p className="text-sm text-slate-400">Angemeldet als {contactName}</p>
                   </div>
                 </div>
@@ -422,7 +482,7 @@ export default function MaterialBookingPage() {
 
                 <label className="block">
                   <span className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-200">
-                    <UserRound className="h-4 w-4 text-yellow-300" /> Ansprechpartner
+                    <UserRound className="h-4 w-4 text-yellow-300" /> Ausgeliehen von
                   </span>
                   <input className="w-full rounded-2xl border border-yellow-400/15 bg-[#0d1728] px-4 py-3 text-white outline-none" type="text" value={contactName} onChange={(event) => setContactName(event.target.value)} placeholder="Max Mustermann" />
                 </label>
@@ -439,8 +499,8 @@ export default function MaterialBookingPage() {
                 </div>
               </div>
 
-              <button className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-yellow-400 px-4 py-3 font-semibold text-[#081120] transition hover:bg-yellow-300" onClick={handleSubmit}>
-                Verleih speichern <ArrowRight className="h-4 w-4" />
+              <button disabled={isSaving} className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-yellow-400 px-4 py-3 font-semibold text-[#081120] transition hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-60" onClick={handleSubmit}>
+                {isSaving ? 'Wird gespeichert …' : 'Ausleihe reservieren'} <ArrowRight className="h-4 w-4" />
               </button>
 
               {message ? <div className="mt-4 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-3 text-sm text-emerald-200">{message}</div> : null}
@@ -453,17 +513,23 @@ export default function MaterialBookingPage() {
               <div className="mt-5 rounded-2xl border border-yellow-400/10 bg-[#0d1728] p-4">
                 <p className="text-sm font-semibold uppercase tracking-[0.24em] text-yellow-300">Status</p>
                 <p className="mt-2 text-2xl font-semibold text-white">
-                  {availability.canBook ? `Noch ${availability.available} ${selected.unit} verfügbar` : `Nur ${availability.available} ${selected.unit} verfügbar`}
+                  {!availability.hasCompleteRange
+                    ? 'Zeitraum auswählen'
+                    : !availability.hasValidRange
+                      ? 'Zeitraum prüfen'
+                      : `${availability.available} ${selected.unit} verfügbar`}
                 </p>
                 <p className="mt-2 text-sm text-slate-400">
-                  Benötigt: {availability.requiredUnits} {selected.unit} für {availability.days} Tage
+                  {availability.hasValidRange
+                    ? `${availability.reserved} ${selected.unit} sind in diesem Zeitraum bereits reserviert.`
+                    : 'Danach siehst du, wie viel Material noch frei ist.'}
                 </p>
               </div>
 
               <ul className="mt-6 space-y-3 text-sm text-slate-400">
-                <li className="rounded-2xl border border-white/10 bg-white/5 p-3">• Verleih nur für den eigenen Gebrauch oder für fördernde Mitglieder</li>
-                <li className="rounded-2xl border border-white/10 bg-white/5 p-3">• Automatische Prüfung der Verfügbarkeit im gewählten Zeitraum</li>
-                <li className="rounded-2xl border border-white/10 bg-white/5 p-3">• Nur für Kameradinnen und Kameraden der Feuerwehr Felm</li>
+                <li className="rounded-2xl border border-white/10 bg-white/5 p-3">• Bitte nur für den eigenen Gebrauch oder für fördernde Mitglieder ausleihen.</li>
+                <li className="rounded-2xl border border-white/10 bg-white/5 p-3">• Bereits reserviertes Material wird automatisch berücksichtigt.</li>
+                <li className="rounded-2xl border border-white/10 bg-white/5 p-3">• Die Ausgabe und Rückgabe bitte innerhalb der Feuerwehr abstimmen.</li>
               </ul>
             </div>
           </section>
@@ -476,22 +542,26 @@ export default function MaterialBookingPage() {
             </div>
             <div>
               <h2 className="text-xl font-semibold text-white">Aktuelle Ausleihen</h2>
-              <p className="text-sm text-slate-400">Wer hat gerade Material ausgeliehen?</p>
+              <p className="text-sm text-slate-400">Anstehende und kürzlich beendete Reservierungen</p>
             </div>
           </div>
 
-          {activeBookings.length === 0 ? (
-            <p className="mt-5 text-sm text-slate-400">Aktuell keine offenen Ausleihen.</p>
+          {bookingsError ? (
+            <p className="mt-5 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-3 text-sm text-amber-200">{bookingsError}</p>
+          ) : isLoadingBookings ? (
+            <p className="mt-5 text-sm text-slate-400">Ausleihen werden geladen …</p>
+          ) : activeBookings.length === 0 ? (
+            <p className="mt-5 text-sm text-slate-400">Zurzeit gibt es keine offenen Ausleihen.</p>
           ) : (
             <div className="mt-5 space-y-3">
               {activeBookings.map((booking) => (
                 <div key={booking.id} className="rounded-2xl border border-white/10 bg-[#0d1728] p-4">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="font-semibold text-white">{booking.name}</p>
-                    <p className="text-xs text-slate-400">{booking.bookedAt}</p>
+                    <p className="text-xs text-slate-400">Eingetragen am {formatBookedAt(booking.bookedAt)}</p>
                   </div>
                   <p className="mt-2 text-sm text-slate-300">{booking.materialName} · {booking.quantity} {booking.unit}</p>
-                  <p className="mt-1 text-sm text-slate-400">Zeitraum: {booking.startDate} bis {booking.endDate}</p>
+                  <p className="mt-1 text-sm text-slate-400">{formatDate(booking.startDate)} bis {formatDate(booking.endDate)}</p>
                 </div>
               ))}
             </div>
@@ -499,7 +569,7 @@ export default function MaterialBookingPage() {
 
           <div className="mt-8 border-t border-white/10 pt-6">
             <h3 className="text-lg font-semibold text-white">Archiv</h3>
-            <p className="mt-1 text-sm text-slate-400">Ältere Ausleihen bleiben hier sichtbar, damit man schnell erkennt, wenn etwas fehlt.</p>
+            <p className="mt-1 text-sm text-slate-400">Ausleihen werden sieben Tage nach dem Rückgabedatum hier abgelegt.</p>
 
             {archiveBookings.length === 0 ? (
               <p className="mt-5 text-sm text-slate-400">Noch kein Archiv vorhanden.</p>
@@ -509,10 +579,10 @@ export default function MaterialBookingPage() {
                   <div key={booking.id} className="rounded-2xl border border-white/10 bg-[#0d1728]/70 p-4 opacity-80">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <p className="font-semibold text-white">{booking.name}</p>
-                      <p className="text-xs text-slate-400">{booking.bookedAt}</p>
+                      <p className="text-xs text-slate-400">Eingetragen am {formatBookedAt(booking.bookedAt)}</p>
                     </div>
                     <p className="mt-2 text-sm text-slate-300">{booking.materialName} · {booking.quantity} {booking.unit}</p>
-                    <p className="mt-1 text-sm text-slate-400">Zeitraum: {booking.startDate} bis {booking.endDate}</p>
+                    <p className="mt-1 text-sm text-slate-400">{formatDate(booking.startDate)} bis {formatDate(booking.endDate)}</p>
                   </div>
                 ))}
               </div>

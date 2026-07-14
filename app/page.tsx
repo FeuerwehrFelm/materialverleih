@@ -11,13 +11,13 @@ export default function HomePage() {
               <span className="inline-flex items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-yellow-300">
                 <ShieldCheck className="h-4 w-4" /> Feuerwehr Felm
               </span>
-              <h1 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">Materialverleih für die Feuerwehr</h1>
+              <h1 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">Materialverleih</h1>
               <p className="mt-3 max-w-2xl text-base leading-7 text-slate-300">
-                Verleih von Material direkt, einfach und übersichtlich für die Kameradinnen und Kameraden der Feuerwehr Felm.
+                Material der Feuerwehr Felm unkompliziert reservieren und den Überblick über alle Ausleihen behalten.
               </p>
             </div>
             <Link href="/materialverleih" className="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-4 py-3 font-semibold text-[#081120] transition hover:bg-yellow-300">
-              Zum Verleih <ArrowRight className="h-4 w-4" />
+              Material ausleihen <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </section>
@@ -27,24 +27,24 @@ export default function HomePage() {
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-yellow-400/10 text-yellow-300">
               <Package className="h-5 w-5" />
             </div>
-            <h2 className="mt-4 text-xl font-semibold text-white">Übersichtliche Ausleihen</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-400">Aktuelle Ausleihen und Archiv geben schnell Auskunft, was gerade verfügbar ist.</p>
+            <h2 className="mt-4 text-xl font-semibold text-white">Alles im Blick</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-400">Aktuelle und vergangene Ausleihen sind für alle übersichtlich aufgelistet.</p>
           </div>
 
           <div className="rounded-[24px] border border-yellow-400/15 bg-[#081120]/85 p-6">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-yellow-400/10 text-yellow-300">
               <CalendarDays className="h-5 w-5" />
             </div>
-            <h2 className="mt-4 text-xl font-semibold text-white">Verfügbarkeit prüfen</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-400">Die Buchung prüft automatisch, ob im gewählten Zeitraum noch genug Material vorhanden ist.</p>
+            <h2 className="mt-4 text-xl font-semibold text-white">Passenden Zeitraum wählen</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-400">Du siehst direkt, wie viel Material im gewünschten Zeitraum noch frei ist.</p>
           </div>
 
           <div className="rounded-[24px] border border-yellow-400/15 bg-[#081120]/85 p-6">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-yellow-400/10 text-yellow-300">
               <ShieldCheck className="h-5 w-5" />
             </div>
-            <h2 className="mt-4 text-xl font-semibold text-white">Nur für den eigenen Gebrauch</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-400">Material wird nur für den eigenen Gebrauch oder für fördernde Mitglieder verliehen.</p>
+            <h2 className="mt-4 text-xl font-semibold text-white">Für unsere Feuerwehr</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-400">Der Verleih ist für Kameradinnen, Kameraden und fördernde Mitglieder der Feuerwehr Felm gedacht.</p>
           </div>
         </section>
       </div>

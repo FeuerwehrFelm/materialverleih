@@ -5,6 +5,15 @@ export const metadata: Metadata = {
   title: 'Materialverleih Feuerwehr Felm',
   description: 'Materialverleih für die Feuerwehr Felm',
   manifest: '/manifest.webmanifest',
+  icons: {
+    icon: '/icon.png',
+    apple: '/apple-touch-icon.png',
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Materialverleih Felm',
+  },
 };
 
 export const viewport: Viewport = {
