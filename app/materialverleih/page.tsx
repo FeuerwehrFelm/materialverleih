@@ -218,7 +218,7 @@ export default function MaterialBookingPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [deletingBookingId, setDeletingBookingId] = useState<string | null>(null);
   const [bookingsError, setBookingsError] = useState('');
-  const [bookingsView, setBookingsView] = useState<'list' | 'calendar'>('list');
+  const [bookingsView, setBookingsView] = useState<'list' | 'calendar'>('calendar');
   const [calendarMonth, setCalendarMonth] = useState(() => {
     const today = new Date();
     return new Date(today.getFullYear(), today.getMonth(), 1);

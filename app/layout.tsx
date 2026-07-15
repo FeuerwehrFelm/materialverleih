@@ -23,7 +23,12 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="de">
-      <body>{children}</body>
+      <body>
+        {children}
+        <footer className="border-t border-[#dfff00]/15 bg-[#050c17] px-4 py-5 text-center text-sm text-slate-400">
+          © Feuerwehr Felm – Justus Hamkens
+        </footer>
+      </body>
     </html>
   );
 }

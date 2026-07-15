@@ -13,7 +13,7 @@ export default function HomePage() {
               </span>
               <h1 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">Materialverleih</h1>
               <p className="mt-3 max-w-2xl text-base leading-7 text-slate-300">
-                Material der Feuerwehr Felm unkompliziert reservieren und den Überblick über alle Ausleihen behalten.
+                Bierzeltgarnituren, Stehtische und Pavillons der Feuerwehr Felm einfach reservieren und den Überblick über alle Ausleihen behalten.
               </p>
             </div>
             <Link href="/materialverleih" className="inline-flex items-center gap-2 rounded-full bg-[#dfff00] px-4 py-3 font-semibold text-[#081120] transition hover:bg-[#efff75]">
