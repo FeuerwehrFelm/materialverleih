@@ -57,6 +57,7 @@ type StoredLogin = {
 type BookingEntry = {
   id: string;
   name: string;
+  beneficiaryName?: string;
   materialName: string;
   quantity: number;
   unit: string;
@@ -68,6 +69,7 @@ type BookingEntry = {
 type SupabaseBookingRow = {
   id: string;
   name: string;
+  beneficiary_name?: string | null;
   material_name: string;
   quantity: number;
   unit: string;
@@ -143,6 +145,7 @@ function mapBookingToRow(booking: BookingEntry): SupabaseBookingRow {
   return {
     id: booking.id,
     name: booking.name,
+    beneficiary_name: booking.beneficiaryName || null,
     material_name: booking.materialName,
     quantity: booking.quantity,
     unit: booking.unit,
@@ -156,6 +159,7 @@ function mapRowToBooking(row: SupabaseBookingRow): BookingEntry {
   return {
     id: row.id,
     name: row.name,
+    beneficiaryName: row.beneficiary_name ?? undefined,
     materialName: row.material_name,
     quantity: row.quantity,
     unit: row.unit,
@@ -187,6 +191,7 @@ export default function MaterialBookingPage() {
   const [materialId, setMaterialId] = useState(materials[0].id);
   const [quantity, setQuantity] = useState(1);
   const [contactName, setContactName] = useState('');
+  const [beneficiaryName, setBeneficiaryName] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [message, setMessage] = useState('');
@@ -363,6 +368,7 @@ export default function MaterialBookingPage() {
     const bookingEntry: BookingEntry = {
       id: createBookingId(),
       name: contactName.trim(),
+      beneficiaryName: beneficiaryName.trim() || undefined,
       materialName: selected.name,
       quantity,
       unit: selected.unit,
@@ -412,7 +418,7 @@ export default function MaterialBookingPage() {
                 <ShieldCheck className="h-4 w-4" /> Materialverleih
               </span>
               <h1 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">Material ausleihen</h1>
-              <p className="mt-3 max-w-2xl text-base font-semibold leading-7 text-slate-200">
+              <p className="mt-3 max-w-2xl text-base leading-7 text-slate-300">
                 Bierzeltgarnituren, Stehtische und Pavillons der Feuerwehr Felm einfach reservieren und den Überblick über alle Ausleihen behalten.
               </p>
             </div>
@@ -485,6 +491,11 @@ export default function MaterialBookingPage() {
                     <UserRound className="h-4 w-4 text-[#eaff63]" /> Ausgeliehen von
                   </span>
                   <input className="w-full rounded-2xl border border-[#dfff00]/20 bg-[#0d1728] px-4 py-3 text-white outline-none" type="text" value={contactName} onChange={(event) => setContactName(event.target.value)} placeholder="Max Mustermann" />
+                </label>
+
+                <label className="block">
+                  <span className="mb-2 block text-sm font-medium text-slate-200">Ausgeliehen für förderndes Mitglied <span className="font-normal text-slate-500">(optional)</span></span>
+                  <input className="w-full rounded-2xl border border-[#dfff00]/20 bg-[#0d1728] px-4 py-3 text-white outline-none" type="text" value={beneficiaryName} onChange={(event) => setBeneficiaryName(event.target.value)} placeholder="Name des fördernden Mitglieds" />
                 </label>
 
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -561,6 +572,7 @@ export default function MaterialBookingPage() {
                     <p className="text-xs text-slate-400">Eingetragen am {formatBookedAt(booking.bookedAt)}</p>
                   </div>
                   <p className="mt-2 text-sm text-slate-300">{booking.materialName} · {booking.quantity} {booking.unit}</p>
+                  {booking.beneficiaryName ? <p className="mt-1 text-sm text-slate-400">Für förderndes Mitglied: {booking.beneficiaryName}</p> : null}
                   <p className="mt-1 text-sm text-slate-400">{formatDate(booking.startDate)} bis {formatDate(booking.endDate)}</p>
                 </div>
               ))}
@@ -582,6 +594,7 @@ export default function MaterialBookingPage() {
                       <p className="text-xs text-slate-400">Eingetragen am {formatBookedAt(booking.bookedAt)}</p>
                     </div>
                     <p className="mt-2 text-sm text-slate-300">{booking.materialName} · {booking.quantity} {booking.unit}</p>
+                    {booking.beneficiaryName ? <p className="mt-1 text-sm text-slate-400">Für förderndes Mitglied: {booking.beneficiaryName}</p> : null}
                     <p className="mt-1 text-sm text-slate-400">{formatDate(booking.startDate)} bis {formatDate(booking.endDate)}</p>
                   </div>
                 ))}

@@ -1,6 +1,7 @@
 create table public.material_bookings (
   id text primary key,
   name text not null check (char_length(trim(name)) between 2 and 120),
+  beneficiary_name text check (beneficiary_name is null or char_length(trim(beneficiary_name)) between 2 and 120),
   material_name text not null,
   quantity integer not null check (quantity > 0),
   unit text not null,
