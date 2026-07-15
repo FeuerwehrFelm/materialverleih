@@ -412,8 +412,8 @@ export default function MaterialBookingPage() {
                 <ShieldCheck className="h-4 w-4" /> Materialverleih
               </span>
               <h1 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">Material ausleihen</h1>
-              <p className="mt-3 max-w-2xl text-base leading-7 text-slate-300">
-                Hier kannst du Material der Feuerwehr Felm für einen bestimmten Zeitraum reservieren.
+              <p className="mt-3 max-w-2xl text-base font-semibold leading-7 text-slate-200">
+                Bierzeltgarnituren, Stehtische und Pavillons der Feuerwehr Felm einfach reservieren und den Überblick über alle Ausleihen behalten.
               </p>
             </div>
             <Link href="/" className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 font-semibold text-slate-100 transition hover:bg-white/10">
