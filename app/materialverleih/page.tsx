@@ -720,7 +720,13 @@ export default function MaterialBookingPage() {
                       <button
                         key={day.key}
                         type="button"
-                        onClick={() => setSelectedCalendarDate(day.key)}
+                        onClick={() => {
+                          setSelectedCalendarDate(day.key);
+                          setStartDate(day.key);
+                          if (endDate && endDate < day.key) {
+                            setEndDate('');
+                          }
+                        }}
                         className={`relative flex aspect-square min-h-10 items-center justify-center rounded-xl border text-sm font-semibold transition ${
                           isSelected
                             ? 'border-[#dfff00] bg-[#dfff00] text-[#081120]'
