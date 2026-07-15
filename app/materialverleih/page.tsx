@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, CalendarDays, ListChecks, ShieldCheck, UserRound } from 'lucide-react';
+import { ArrowRight, CalendarDays, ListChecks, ShieldCheck, Trash2, UserRound } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { isSupabaseConfigured, supabase } from '../../lib/supabase';
 
@@ -105,6 +105,16 @@ function formatBookedAt(value: string) {
     : new Intl.DateTimeFormat('de-DE', { dateStyle: 'short', timeStyle: 'short' }).format(date);
 }
 
+function isFutureBooking(booking: BookingEntry) {
+  const today = new Date();
+  const localToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  return booking.startDate !== 'ohne Datum' && booking.startDate > localToday;
+}
+
+function namesMatch(left: string, right: string) {
+  return left.trim().localeCompare(right.trim(), 'de', { sensitivity: 'base' }) === 0;
+}
+
 function sortBookings(bookings: BookingEntry[]) {
   return [...bookings].sort((left, right) => {
     const leftDate = parseBookingDate(left.startDate) ?? parseBookingDate(left.endDate) ?? new Date(left.bookedAt);
@@ -202,6 +212,7 @@ export default function MaterialBookingPage() {
   const [bookings, setBookings] = useState<BookingEntry[]>([]);
   const [isLoadingBookings, setIsLoadingBookings] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [deletingBookingId, setDeletingBookingId] = useState<string | null>(null);
   const [bookingsError, setBookingsError] = useState('');
 
   useEffect(() => {
@@ -408,6 +419,39 @@ export default function MaterialBookingPage() {
     setIsSaving(false);
   };
 
+  const handleDelete = async (booking: BookingEntry) => {
+    if (!isLoggedIn || !namesMatch(booking.name, contactName) || !isFutureBooking(booking)) {
+      setMessage('Diese Reservierung kann nicht gelöscht werden.');
+      return;
+    }
+
+    if (!window.confirm(`${booking.materialName} vom ${formatDate(booking.startDate)} bis ${formatDate(booking.endDate)} wirklich löschen?`)) {
+      return;
+    }
+
+    setDeletingBookingId(booking.id);
+
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase
+        .from(bookingsTable)
+        .delete()
+        .eq('id', booking.id)
+        .eq('name', booking.name);
+
+      if (error) {
+        setMessage('Die Reservierung konnte nicht gelöscht werden. Bitte versuche es erneut.');
+        setDeletingBookingId(null);
+        return;
+      }
+    }
+
+    const updated = bookings.filter((entry) => entry.id !== booking.id);
+    setBookings(updated);
+    window.localStorage.setItem(bookingsStorageKey, JSON.stringify(updated));
+    setMessage('Die Reservierung wurde gelöscht.');
+    setDeletingBookingId(null);
+  };
+
   return (
     <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto flex max-w-6xl flex-col gap-6">
@@ -574,6 +618,16 @@ export default function MaterialBookingPage() {
                   <p className="mt-2 text-sm text-slate-300">{booking.materialName} · {booking.quantity} {booking.unit}</p>
                   {booking.beneficiaryName ? <p className="mt-1 text-sm text-slate-400">Für förderndes Mitglied: {booking.beneficiaryName}</p> : null}
                   <p className="mt-1 text-sm text-slate-400">{formatDate(booking.startDate)} bis {formatDate(booking.endDate)}</p>
+                  {isLoggedIn && namesMatch(booking.name, contactName) && isFutureBooking(booking) ? (
+                    <button
+                      type="button"
+                      disabled={deletingBookingId === booking.id}
+                      onClick={() => void handleDelete(booking)}
+                      className="mt-3 inline-flex items-center gap-2 rounded-full border border-red-400/25 bg-red-400/10 px-3 py-2 text-sm font-semibold text-red-200 transition hover:bg-red-400/20 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <Trash2 className="h-4 w-4" /> {deletingBookingId === booking.id ? 'Wird gelöscht …' : 'Reservierung löschen'}
+                    </button>
+                  ) : null}
                 </div>
               ))}
             </div>
