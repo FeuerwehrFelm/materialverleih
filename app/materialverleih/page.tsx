@@ -497,10 +497,10 @@ export default function MaterialBookingPage() {
   return (
     <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto flex max-w-6xl flex-col gap-6">
-        <section className="overflow-hidden rounded-[32px] border border-[#dfff00]/25 bg-[#081120]/90 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:p-8">
+        <section className="overflow-hidden rounded-[32px] border border-[#f4ff00]/25 bg-[#081120]/90 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:p-8">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <span className="inline-flex items-center gap-2 rounded-full border border-[#dfff00]/25 bg-[#dfff00]/12 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-[#eaff63]">
+              <span className="inline-flex items-center gap-2 rounded-full border border-[#f4ff00]/25 bg-[#f4ff00]/12 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-[#f8ff80]">
                 <ShieldCheck className="h-4 w-4" /> Materialverleih
               </span>
               <h1 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">Material ausleihen</h1>
@@ -515,33 +515,33 @@ export default function MaterialBookingPage() {
         </section>
 
         {!isLoggedIn ? (
-          <section className="rounded-[28px] border border-[#dfff00]/20 bg-[#081120]/85 p-6 shadow-[0_12px_30px_rgba(0,0,0,0.2)]">
+          <section className="rounded-[28px] border border-[#f4ff00]/20 bg-[#081120]/85 p-6 shadow-[0_12px_30px_rgba(0,0,0,0.2)]">
             <h2 className="text-xl font-semibold text-white">Kurz anmelden</h2>
             <p className="mt-2 text-sm leading-6 text-slate-400">Gib deinen Namen und den gemeinsamen Zugangscode ein.</p>
 
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               <label className="block">
                 <span className="mb-2 block text-sm font-medium text-slate-200">Name</span>
-                <input className="w-full rounded-2xl border border-[#dfff00]/20 bg-[#0d1728] px-4 py-3 text-white outline-none" type="text" value={loginName} onChange={(event) => setLoginName(event.target.value)} placeholder="Vor- und Nachname" />
+                <input className="w-full rounded-2xl border border-[#f4ff00]/20 bg-[#0d1728] px-4 py-3 text-white outline-none" type="text" value={loginName} onChange={(event) => setLoginName(event.target.value)} placeholder="Vor- und Nachname" />
               </label>
               <label className="block">
                 <span className="mb-2 block text-sm font-medium text-slate-200">Code</span>
-                <input className="w-full rounded-2xl border border-[#dfff00]/20 bg-[#0d1728] px-4 py-3 text-white outline-none" type="password" value={loginCode} onChange={(event) => setLoginCode(event.target.value)} placeholder="Zugangscode" />
+                <input className="w-full rounded-2xl border border-[#f4ff00]/20 bg-[#0d1728] px-4 py-3 text-white outline-none" type="password" value={loginCode} onChange={(event) => setLoginCode(event.target.value)} placeholder="Zugangscode" />
               </label>
             </div>
 
             {loginError ? <div className="mt-4 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-3 text-sm text-amber-200">{loginError}</div> : null}
 
-            <button className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-[#dfff00] px-4 py-3 font-semibold text-[#081120] transition hover:bg-[#efff75]" onClick={handleLogin}>
+            <button className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-[#f4ff00] px-4 py-3 font-semibold text-[#081120] transition hover:bg-[#fbff9a]" onClick={handleLogin}>
               Anmelden <ArrowRight className="h-4 w-4" />
             </button>
           </section>
         ) : (
           <section className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-            <div className="rounded-[28px] border border-[#dfff00]/20 bg-[#081120]/85 p-6 shadow-[0_12px_30px_rgba(0,0,0,0.2)]">
+            <div className="rounded-[28px] border border-[#f4ff00]/20 bg-[#081120]/85 p-6 shadow-[0_12px_30px_rgba(0,0,0,0.2)]">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#dfff00]/12 text-[#eaff63]">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#f4ff00]/12 text-[#f8ff80]">
                     <CalendarDays className="h-5 w-5" />
                   </div>
                   <div>
@@ -557,7 +557,7 @@ export default function MaterialBookingPage() {
               <div className="mt-6 grid gap-4">
                 <label className="block">
                   <span className="mb-2 block text-sm font-medium text-slate-200">Material</span>
-                  <select className="w-full rounded-2xl border border-[#dfff00]/20 bg-[#0d1728] px-4 py-3 text-white outline-none" value={materialId} onChange={(event) => setMaterialId(event.target.value)}>
+                  <select className="w-full rounded-2xl border border-[#f4ff00]/20 bg-[#0d1728] px-4 py-3 text-white outline-none" value={materialId} onChange={(event) => setMaterialId(event.target.value)}>
                     {materials.map((item) => (
                       <option key={item.id} value={item.id}>
                         {item.name}
@@ -568,47 +568,47 @@ export default function MaterialBookingPage() {
 
                 <label className="block">
                   <span className="mb-2 block text-sm font-medium text-slate-200">Menge</span>
-                  <input className="w-full rounded-2xl border border-[#dfff00]/20 bg-[#0d1728] px-4 py-3 text-white outline-none" type="number" min="1" max={maxQuantity} value={quantity} onChange={(event) => setQuantity(Number(event.target.value))} />
+                  <input className="w-full rounded-2xl border border-[#f4ff00]/20 bg-[#0d1728] px-4 py-3 text-white outline-none" type="number" min="1" max={maxQuantity} value={quantity} onChange={(event) => setQuantity(Number(event.target.value))} />
                   <p className="mt-2 text-xs text-slate-400">Maximal verfügbar: {maxQuantity} {selected.unit}</p>
                 </label>
 
                 <label className="block">
                   <span className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-200">
-                    <UserRound className="h-4 w-4 text-[#eaff63]" /> Ausgeliehen von
+                    <UserRound className="h-4 w-4 text-[#f8ff80]" /> Ausgeliehen von
                   </span>
-                  <input className="w-full rounded-2xl border border-[#dfff00]/20 bg-[#0d1728] px-4 py-3 text-white outline-none" type="text" value={contactName} onChange={(event) => setContactName(event.target.value)} placeholder="Max Mustermann" />
+                  <input className="w-full rounded-2xl border border-[#f4ff00]/20 bg-[#0d1728] px-4 py-3 text-white outline-none" type="text" value={contactName} onChange={(event) => setContactName(event.target.value)} placeholder="Max Mustermann" />
                 </label>
 
                 <label className="block">
                   <span className="mb-2 block text-sm font-medium text-slate-200">Ausgeliehen für förderndes Mitglied <span className="font-normal text-slate-500">(optional)</span></span>
-                  <input className="w-full rounded-2xl border border-[#dfff00]/20 bg-[#0d1728] px-4 py-3 text-white outline-none" type="text" value={beneficiaryName} onChange={(event) => setBeneficiaryName(event.target.value)} placeholder="Name des fördernden Mitglieds" />
+                  <input className="w-full rounded-2xl border border-[#f4ff00]/20 bg-[#0d1728] px-4 py-3 text-white outline-none" type="text" value={beneficiaryName} onChange={(event) => setBeneficiaryName(event.target.value)} placeholder="Name des fördernden Mitglieds" />
                 </label>
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <label className="block">
                     <span className="mb-2 block text-sm font-medium text-slate-200">Von</span>
-                    <input className="w-full rounded-2xl border border-[#dfff00]/20 bg-[#0d1728] px-4 py-3 text-white outline-none" type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} />
+                    <input className="w-full rounded-2xl border border-[#f4ff00]/20 bg-[#0d1728] px-4 py-3 text-white outline-none" type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} />
                   </label>
                   <label className="block">
                     <span className="mb-2 block text-sm font-medium text-slate-200">Bis</span>
-                    <input className="w-full rounded-2xl border border-[#dfff00]/20 bg-[#0d1728] px-4 py-3 text-white outline-none" type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} />
+                    <input className="w-full rounded-2xl border border-[#f4ff00]/20 bg-[#0d1728] px-4 py-3 text-white outline-none" type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} />
                   </label>
                 </div>
               </div>
 
-              <button disabled={isSaving} className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#dfff00] px-4 py-3 font-semibold text-[#081120] transition hover:bg-[#efff75] disabled:cursor-not-allowed disabled:opacity-60" onClick={handleSubmit}>
+              <button disabled={isSaving} className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#f4ff00] px-4 py-3 font-semibold text-[#081120] transition hover:bg-[#fbff9a] disabled:cursor-not-allowed disabled:opacity-60" onClick={handleSubmit}>
                 {isSaving ? 'Wird gespeichert …' : 'Ausleihe reservieren'} <ArrowRight className="h-4 w-4" />
               </button>
 
               {message ? <div className="mt-4 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-3 text-sm text-emerald-200">{message}</div> : null}
             </div>
 
-            <div className="rounded-[28px] border border-[#dfff00]/20 bg-[#081120]/85 p-6 shadow-[0_12px_30px_rgba(0,0,0,0.2)]">
-              <h2 className="text-xl font-semibold text-[#eaff63]">Verfügbarkeit</h2>
+            <div className="rounded-[28px] border border-[#f4ff00]/20 bg-[#081120]/85 p-6 shadow-[0_12px_30px_rgba(0,0,0,0.2)]">
+              <h2 className="text-xl font-semibold text-[#f8ff80]">Verfügbarkeit</h2>
               <p className="mt-3 text-sm leading-6 text-slate-400">{selected.note}</p>
 
-              <div className="mt-5 rounded-2xl border border-[#dfff00]/15 bg-[#0d1728] p-4">
-                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#eaff63]">Status</p>
+              <div className="mt-5 rounded-2xl border border-[#f4ff00]/15 bg-[#0d1728] p-4">
+                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#f8ff80]">Status</p>
                 <p className="mt-2 text-2xl font-semibold text-white">
                   {!availability.hasCompleteRange
                     ? 'Zeitraum auswählen'
@@ -632,10 +632,10 @@ export default function MaterialBookingPage() {
           </section>
         )}
 
-        <section className="rounded-[28px] border border-[#dfff00]/20 bg-[#081120]/85 p-6 shadow-[0_12px_30px_rgba(0,0,0,0.2)]">
+        <section className="rounded-[28px] border border-[#f4ff00]/20 bg-[#081120]/85 p-6 shadow-[0_12px_30px_rgba(0,0,0,0.2)]">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#dfff00]/12 text-[#eaff63]">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#f4ff00]/12 text-[#f8ff80]">
                 {bookingsView === 'list' ? <ListChecks className="h-5 w-5" /> : <CalendarDays className="h-5 w-5" />}
               </div>
               <div>
@@ -644,10 +644,10 @@ export default function MaterialBookingPage() {
               </div>
             </div>
             <div className="flex rounded-full border border-white/10 bg-[#0d1728] p-1">
-              <button type="button" onClick={() => setBookingsView('list')} className={`rounded-full px-3 py-2 text-sm font-semibold transition ${bookingsView === 'list' ? 'bg-[#dfff00] text-[#081120]' : 'text-slate-300 hover:text-white'}`}>
+              <button type="button" onClick={() => setBookingsView('list')} className={`rounded-full px-3 py-2 text-sm font-semibold transition ${bookingsView === 'list' ? 'bg-[#f4ff00] text-[#081120]' : 'text-slate-300 hover:text-white'}`}>
                 Liste
               </button>
-              <button type="button" onClick={() => setBookingsView('calendar')} className={`rounded-full px-3 py-2 text-sm font-semibold transition ${bookingsView === 'calendar' ? 'bg-[#dfff00] text-[#081120]' : 'text-slate-300 hover:text-white'}`}>
+              <button type="button" onClick={() => setBookingsView('calendar')} className={`rounded-full px-3 py-2 text-sm font-semibold transition ${bookingsView === 'calendar' ? 'bg-[#f4ff00] text-[#081120]' : 'text-slate-300 hover:text-white'}`}>
                 Kalender
               </button>
             </div>
@@ -729,16 +729,16 @@ export default function MaterialBookingPage() {
                         }}
                         className={`relative flex aspect-square min-h-10 items-center justify-center rounded-xl border text-sm font-semibold transition ${
                           isSelected
-                            ? 'border-[#dfff00] bg-[#dfff00] text-[#081120]'
+                            ? 'border-[#f4ff00] bg-[#f4ff00] text-[#081120]'
                             : hasBookings
-                              ? 'border-[#dfff00]/35 bg-[#dfff00]/12 text-[#eaff63] hover:bg-[#dfff00]/20'
+                              ? 'border-[#f4ff00]/35 bg-[#f4ff00]/12 text-[#f8ff80] hover:bg-[#f4ff00]/20'
                               : day.isCurrentMonth
                                 ? 'border-white/5 bg-white/[0.03] text-slate-200 hover:bg-white/[0.07]'
                                 : 'border-transparent text-slate-600'
                         }`}
                       >
                         {day.date.getDate()}
-                        {hasBookings && !isSelected ? <span className="absolute bottom-1 h-1 w-1 rounded-full bg-[#dfff00]" /> : null}
+                        {hasBookings && !isSelected ? <span className="absolute bottom-1 h-1 w-1 rounded-full bg-[#f4ff00]" /> : null}
                       </button>
                     );
                   })}
